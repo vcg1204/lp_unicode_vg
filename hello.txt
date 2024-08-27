@@ -1,1 +1,4 @@
-twinkle twinkle little star
+xcP6Yah4J3Qbb2UY
+vaishveegandhi
+
+mongodb+srv://vaishveegandhi:<db_password>@uc-task0-db.cb4na.mongodb.net/?retryWrites=true&w=majority&appName=uc-task0-db
