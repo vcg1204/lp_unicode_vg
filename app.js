@@ -8,6 +8,7 @@ import morgan from "morgan";
 const app = express();
 //body parser
 app.use(express.urlencoded({extended: false}))
+app.use(express.json());
 //get the env
 dotenv.config();
 const port = process.env.PORT || 3000;
@@ -21,9 +22,12 @@ mongoose
   .catch((err) => {
     console.log(err);
   });
+  
 app.use(morgan('tiny'));
+
 //call api 
 app.use("/api", route);
+
 //listen server
 app.listen(port, () => {
   console.log(`server is connected on port ${port}`);
