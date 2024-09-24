@@ -1,13 +1,17 @@
 import express from "express";
-// import {postUser, getUsers, deleteUser, putUser} from "../controllers/userController.js"
-import{signupUser, loginUser} from "../controllers/userController.js";
-
+import{getAllUsers, signupUser, loginUser,updateUser,deleteUser} from "../controllers/userController.js";
+import{uploadImg, updateImg} from "../controllers/userController.js"
+import authVerify from '../middlewares/middleware.js';
+import upload from "../middlewares/multer.js";
 const route = express.Router();
-// route.post("/createUser", postUser);
-// route.get("/getUsers", getUsers);
-// route.delete("/deleteUser/:id", deleteUser);
-// route.put("/putUser/:id", putUser);
 
-route.post("/signup", signupUser);
-route.post("/login",loginUser);
+route.get("/allUsers",authVerify,getAllUsers);
+route.post("/signUp", signupUser);
+route.post("/logIn",loginUser);
+route.put("/updateUser",authVerify,updateUser);
+route.delete("deleteUser",authVerify,deleteUser);
+
+route.post("/uploadImg",upload.single("image"),uploadImg);
+route.post("updateImg",upload.single("image"),updateImg);
+
 export default route;

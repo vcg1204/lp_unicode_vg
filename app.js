@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import route from "./routes/userRoutes.js";
 import morgan from "morgan";
+
 //create app
 const app = express();
 //body parser
