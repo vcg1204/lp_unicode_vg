@@ -12,6 +12,6 @@ route.put("/updateUser",authVerify,updateUser);
 route.delete("deleteUser",authVerify,deleteUser);
 
 route.post("/uploadImg",upload.single("image"),uploadImg);
-route.post("updateImg",upload.single("image"),updateImg);
+route.post("/updateImg",upload.single("image"),updateImg);
 
 export default route;

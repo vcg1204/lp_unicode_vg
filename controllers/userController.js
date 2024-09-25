@@ -46,14 +46,14 @@ export const signupUser = async (req, res) => {
     const hashedPass = await bcrypt.hash(password, salt);
 
     //save new user in db
-    const newUser = await userModel.create({
+    const user = await userModel.create({
       fname,
       lname,
       email,
       password: hashedPass,
     });
     console.log("User created successfully");
-    return res.status(200).json({ newUser });
+    return res.status(200).json({ user });
   } catch (error) {
     res.status(500).send(error);
   }
@@ -62,17 +62,18 @@ export const signupUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const userexists = await userModel.findOne({ email });
-    if (!userexists) {
+    //find user by email
+    const user = await userModel.findOne({ email });
+    if (!user) {
       return res.status(400).json({ message: "User doesnt exist" });
     }
-    const match = await bcrypt.compare(password, userexists.password); //(input pw and exisiting pw of the user found by email)
+    const match = await bcrypt.compare(password, user.password); //(input pw and exisiting pw of the user found by email)
     if (!match) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ userid: userexists._id }, Secret);
-
+    const token = jwt.sign({ userId: user._id }, Secret);
+    
     //details of mail
     const mailInfo = {
       to: email,
@@ -128,7 +129,7 @@ export const uploadImg = async (req, res) => {
       folder: "uploadedimages",
     });
     //find if user exists
-    const user = await userModel.findById(req.user.userid);
+    const user = await userModel.findById(req.user.userId);
     if (!user) {
       return res.status(404).send("User not found");
     }
@@ -154,7 +155,7 @@ export const updateImg = async (req, res) => {
       return res.status(404).send("User not found");
     }
     //destroy existing user 
-    if (userModel.img && userModel.img.public_id) {
+    if (user.img && user.img.public_id) {
       await cloudinary.uploader.destroy(userModel.img.public_id);
     }
     //upload img
