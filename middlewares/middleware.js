@@ -20,3 +20,4 @@ const authVerify = (req, res, next) => {
   }
 }
 export default authVerify;
+

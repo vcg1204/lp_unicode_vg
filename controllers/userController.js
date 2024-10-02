@@ -1,9 +1,10 @@
 import userModel from "../models/userModel.js";
 import dotenv from "dotenv";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import cloudinary from "../congfigure/cloudinary.js";
+import path from "path";
 
 //get the key
 dotenv.config();
@@ -36,25 +37,48 @@ export const getAllUsers = async (req, res) => {
 export const signupUser = async (req, res) => {
   try {
     //get details from body
-    const { fname, lname, email, password } = req.body;
+    const {
+      fname,
+      lname,
+      username,
+      email,
+      password,
+      resume,
+      tech_stack,
+      field_of_interest,
+      experience_level,
+      bio,
+    } = req.body;
     const emailExists = await userModel.findOne({ email });
     if (emailExists) {
       return res.status(400).json({ message: "User already exists" });
     }
     //hash the password
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(120);
     const hashedPass = await bcrypt.hash(password, salt);
 
+    const resumeinput = await cloudinary.uploader.upload(req.file.path, {
+      folder: "resume",
+    });
     //save new user in db
     const user = await userModel.create({
       fname,
       lname,
+      username,
       email,
       password: hashedPass,
+      resume: {
+        resume_url: resumeinput.secure_url,
+        public_id: resumeinput.public_id,
+      },
+      tech_stack: tech_stack.split(","),
+      field_of_interest,
+      experience_level,
+      bio,
     });
-    console.log("User created successfully");
-    return res.status(200).json({ user });
+    return res.status(200).send(user);
   } catch (error) {
+    console.log(error);
     res.status(500).send(error);
   }
 };
@@ -62,7 +86,6 @@ export const signupUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    //find user by email
     const user = await userModel.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "User doesnt exist" });
@@ -71,17 +94,13 @@ export const loginUser = async (req, res) => {
     if (!match) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-
     const token = jwt.sign({ userId: user._id }, Secret);
-    
-    //details of mail
     const mailInfo = {
       to: email,
       from: process.env.Email,
       subject: "Using Nodemailer",
       text: "Successfully Logged In",
     };
-    //send mail
     transporter.sendMail(mailInfo, (err, info) => {
       if (err) {
         return res
@@ -129,6 +148,7 @@ export const uploadImg = async (req, res) => {
       folder: "uploadedimages",
     });
     //find if user exists
+
     const user = await userModel.findById(req.user.userId);
     if (!user) {
       return res.status(404).send("User not found");
@@ -154,9 +174,9 @@ export const updateImg = async (req, res) => {
     if (!user) {
       return res.status(404).send("User not found");
     }
-    //destroy existing user 
+    //destroy existing user
     if (user.img && user.img.public_id) {
-      await cloudinary.uploader.destroy(userModel.img.public_id);
+      await cloudinary.uploader.destroy(user.img.public_id);
     }
     //upload img
     const result = await cloudinary.uploader.upload(req.file.path, {
@@ -167,7 +187,7 @@ export const updateImg = async (req, res) => {
     await user.save();
     return res.status(200).json({
       message: "Image updated",
-      Image: userModel.img,
+      Image: user.img,
     });
   } catch (err) {
     console.error(err);
